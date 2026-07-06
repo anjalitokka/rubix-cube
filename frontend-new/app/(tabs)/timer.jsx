@@ -5,11 +5,12 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { theme } from "@/src/theme";
 import { generateScramble } from "@/src/lib/cube";
-import { apiPost, apiGet } from "@/src/lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
-function formatTime(ms){
+function formatTime(ms) {
+  
   const totalCs = Math.floor(ms / 10); // hundredths
   const minutes = Math.floor(totalCs / 6000);
   const seconds = Math.floor((totalCs % 6000) / 100);
@@ -18,6 +19,25 @@ function formatTime(ms){
     return `${minutes}:${seconds.toString().padStart(2, "0")}.${cs.toString().padStart(2, "0")}`;
   }
   return `${seconds}.${cs.toString().padStart(2, "0")}`;
+}
+const STORAGE_KEY = "cube_timer_history";
+
+async function loadStoredTimes() {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
+  }
+}
+
+async function saveStoredTimes(times) {
+  try {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(times)
+    );
+  } catch {}
 }
 
 export default function TimerScreen() {
@@ -33,12 +53,8 @@ export default function TimerScreen() {
   const inspectionRef = useRef(null);
 
   const loadSessions = async () => {
-    try {
-      const rows = await apiGet("/timer");
-      setSessions(rows);
-    } catch (e) {
-      // ignore
-    }
+    const rows = await loadStoredTimes();
+    setSessions(rows);
   };
 
   useEffect(() => {
@@ -84,31 +100,58 @@ export default function TimerScreen() {
 
   const stopTimer = async () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
     const finalMs = Date.now() - startedAtRef.current;
+
     setDisplayMs(finalMs);
+
     setPhase("done");
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+    Haptics.notificationAsync(
+      Haptics.NotificationFeedbackType.Success
+    );
+
     setSaving(true);
+
     try {
-      await apiPost("/timer", {
-        duration_ms: finalMs,
-        scramble: scramble.join(" "),
-      });
-      await loadSessions();
-    } catch (e) {
-      // ignore
+
+      const old = await loadStoredTimes();
+
+      const updated = [
+        {
+          id: Date.now().toString(),
+          duration_ms: finalMs,
+          scramble: scramble.join(" "),
+          created_at: new Date().toISOString(),
+        },
+        ...old,
+      ];
+
+      await saveStoredTimes(updated);
+
+      setSessions(updated);
+
+    } finally {
+
+      setSaving(false);
+
     }
-    setSaving(false);
   };
 
   const reset = () => {
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    if (inspectionRef.current) clearInterval(inspectionRef.current);
-    setPhase("idle");
-    setDisplayMs(0);
-    setInspection(15);
-    setScramble(generateScramble(20));
-  };
+  if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
+  if (inspectionRef.current)
+    clearInterval(inspectionRef.current);
+
+  setPhase("idle");
+  setDisplayMs(0);
+  setInspection(15);
+
+  setScramble(generateScramble(20));
+
+  loadSessions();
+};
 
   const handlePress = () => {
     if (phase === "idle" || phase === "done") {
@@ -120,9 +163,20 @@ export default function TimerScreen() {
     }
   };
 
-  const best = sessions.length ? Math.min(...sessions.map((s) => s.duration_ms)) : null;
-  const ao5 = sessions.length >= 5
-    ? Math.round(sessions.slice(0, 5).reduce((a, b) => a + b.duration_ms, 0) / 5)
+  const sorted = [...sessions];
+
+const best =
+  sorted.length > 0
+    ? Math.min(...sorted.map((s) => s.duration_ms))
+    : null;
+
+const ao5 =
+  sessions.length >= 5
+    ? Math.round(
+        sessions
+          .slice(0, 5)
+          .reduce((sum, item) => sum + Number(item.duration_ms), 0) / 5
+      )
     : null;
 
   const bigLabel =
