@@ -1,0 +1,61 @@
+export const theme = {
+  colors: {
+    bg: '#0B0B0B',
+    surface: '#121212',
+    surface2: '#1E1E1E',
+    surface3: '#2A2A2A',
+    border: '#2A2A2A',
+    borderStrong: '#404040',
+    divider: '#1E1E1E',
+    text: '#F5F5F5',
+    textDim: '#BDBDBD',
+    textFaint: '#6B6B6B',
+    brand: '#FF8800',
+    brandDim: '#FF5500',
+    brandDeep: '#332200',
+    success: '#009E60',
+    warning: '#FFD500',
+    error: '#FF3B30',
+    info: '#0046AD',
+    // Cube canonical
+    cubeW: '#FFFFFF',
+    cubeY: '#FFD500',
+    cubeR: '#FF0000',
+    cubeO: '#FF8800',
+    cubeB: '#0046AD',
+    cubeG: '#009E60',
+  },
+  space: {
+    xs: 4,
+    sm: 8,
+    md: 12,
+    lg: 16,
+    xl: 24,
+    xxl: 32,
+    xxxl: 48,
+  },
+  radius: {
+    sm: 6,
+    md: 12,
+    lg: 20,
+    pill: 999,
+  },
+  font: {
+    // System fallback - Rajdhani/IBM Plex not loaded (design keeps typographic hierarchy via size/weight)
+    display: 'System',
+    text: 'System',
+    mono: 'Menlo',
+  },
+  fontSize: {
+    sm: 12,
+    base: 14,
+    lg: 16,
+    xl: 20,
+    xxl: 24,
+    xxxl: 32,
+    huge: 48,
+    massive: 88,
+  },
+};
+
+
