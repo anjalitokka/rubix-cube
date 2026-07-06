@@ -4,11 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { theme } from "@/src/theme";
-import { apiGet, apiDelete } from "@/src/lib/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
-function formatMs(ms){
+function formatMs(ms) {
   const totalCs = Math.floor(ms / 10);
   const minutes = Math.floor(totalCs / 6000);
   const seconds = Math.floor((totalCs % 6000) / 100);
@@ -16,8 +16,30 @@ function formatMs(ms){
   if (minutes > 0) return `${minutes}:${seconds.toString().padStart(2, "0")}.${cs.toString().padStart(2, "0")}`;
   return `${seconds}.${cs.toString().padStart(2, "0")}`;
 }
+const STORAGE_KEY = "cube_timer_history";
 
-function relTime(iso){
+async function loadStoredTimes() {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEY);
+
+    if (!data) return [];
+
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
+}
+
+async function saveStoredTimes(times) {
+  try {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(times)
+    );
+  } catch { }
+}
+
+function relTime(iso) {
   const d = new Date(iso);
   const diff = Date.now() - d.getTime();
   const mins = Math.floor(diff / 60000);
@@ -37,16 +59,28 @@ export default function HistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
+
+    let backendSolves = [];
+
     try {
-      const [s, t] = await Promise.all([
-        apiGet("/solves"),
-        apiGet("/timer"),
-      ]);
-      setSolves(s);
-      setTimes(t);
-    } catch (e) {
-      // ignore
-    }
+
+      // Keep cube solve history in backend if you want
+      const res = await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/solves`
+      );
+
+      if (res.ok) {
+        backendSolves = await res.json();
+      }
+
+    } catch { }
+
+    const timerHistory = await loadStoredTimes();
+
+    setSolves(backendSolves);
+
+    setTimes(timerHistory);
+
   }, []);
 
   useEffect(() => {
@@ -59,15 +93,38 @@ export default function HistoryScreen() {
     setRefreshing(false);
   };
 
- const remove = async (type, id) => {
-    if (type === "solves") {
-      await apiDelete(`/solves/${id}`);
-      setSolves((r) => r.filter((x) => x.id !== id));
-    } else {
-      await apiDelete(`/timer/${id}`);
-      setTimes((r) => r.filter((x) => x.id !== id));
-    }
-  };
+  const remove = async (type, id) => {
+
+  if (type === "solves") {
+
+    try {
+
+      await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/solves/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+    } catch {}
+
+    setSolves((x) =>
+      x.filter((s) => s.id !== id)
+    );
+
+  } else {
+
+    const updated = times.filter(
+      (x) => x.id !== id
+    );
+
+    await saveStoredTimes(updated);
+
+    setTimes(updated);
+
+  }
+
+};
 
   const data = tab === "solves" ? solves : times;
   const empty = data.length === 0;
