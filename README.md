@@ -1,3 +1,5 @@
+||   SORRY FOR THE WRONG INFORMATION ABOUT CubeVision ON MY RESUME."THE APP CRASHED".SO I HAD TO CHANGE MY TECH STACK.HOWEVER THE FEATURES REMAIN INTACT. ||
+
 CubeVision – Computer Vision-Based Rubik's Cube Solver
 
 CubeVision is a cross-platform mobile application that solves a Rubik's Cube by combining computer vision with an efficient solving algorithm. Users can scan all six faces of a cube using their device camera, review and correct detected colors if necessary, and receive a step-by-step solution to solve the cube.
