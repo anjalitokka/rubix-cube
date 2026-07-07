@@ -59,29 +59,12 @@ export default function HistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
+  const solveHistory = await loadStoredSolves();
+  const timerHistory = await loadStoredTimes();
 
-    let backendSolves = [];
-
-    try {
-
-      // Keep cube solve history in backend if you want
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/solves`
-      );
-
-      if (res.ok) {
-        backendSolves = await res.json();
-      }
-
-    } catch { }
-
-    const timerHistory = await loadStoredTimes();
-
-    setSolves(backendSolves);
-
-    setTimes(timerHistory);
-
-  }, []);
+  setSolves(solveHistory);
+  setTimes(timerHistory);
+}, []);
 
   useEffect(() => {
     load();
