@@ -11,7 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-
+import {
+  loadStoredSolves,
+  saveStoredSolves,
+} from "@/src/lib/storage";
 import { theme } from "@/src/theme";
 
 import {
@@ -93,14 +96,21 @@ export default function ManualEntry() {
         facelets,
       });
 
-      try {
-        await apiPost("/solves", {
+      const old = await loadStoredSolves();
+
+      const updated = [
+        {
+          id: Date.now().toString(),
           facelets,
           solution: res.solution,
           move_count: res.move_count,
           input_method: "manual",
-        });
-      } catch {}
+          created_at: new Date().toISOString(),
+        },
+        ...old,
+      ];
+
+      await saveStoredSolves(updated);
 
       router.push({
         pathname: "/solve",

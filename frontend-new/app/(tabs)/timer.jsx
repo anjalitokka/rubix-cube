@@ -1,16 +1,22 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { theme } from "@/src/theme";
 import { generateScramble } from "@/src/lib/cube";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-
+import {
+  loadStoredTimes,
+  saveStoredTimes,
+} from "@/src/lib/storage";
 
 function formatTime(ms) {
-  
+
   const totalCs = Math.floor(ms / 10); // hundredths
   const minutes = Math.floor(totalCs / 6000);
   const seconds = Math.floor((totalCs % 6000) / 100);
@@ -20,25 +26,7 @@ function formatTime(ms) {
   }
   return `${seconds}.${cs.toString().padStart(2, "0")}`;
 }
-const STORAGE_KEY = "cube_timer_history";
 
-async function loadStoredTimes() {
-  try {
-    const data = await AsyncStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-}
-
-async function saveStoredTimes(times) {
-  try {
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(times)
-    );
-  } catch {}
-}
 
 export default function TimerScreen() {
   const [phase, setPhase] = useState("idle");
@@ -59,6 +47,7 @@ export default function TimerScreen() {
 
   useEffect(() => {
     loadSessions();
+
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (inspectionRef.current) clearInterval(inspectionRef.current);
@@ -139,19 +128,19 @@ export default function TimerScreen() {
   };
 
   const reset = () => {
-  if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-  if (inspectionRef.current)
-    clearInterval(inspectionRef.current);
+    if (inspectionRef.current)
+      clearInterval(inspectionRef.current);
 
-  setPhase("idle");
-  setDisplayMs(0);
-  setInspection(15);
+    setPhase("idle");
+    setDisplayMs(0);
+    setInspection(15);
 
-  setScramble(generateScramble(20));
+    setScramble(generateScramble(20));
 
-  loadSessions();
-};
+    loadSessions();
+  };
 
   const handlePress = () => {
     if (phase === "idle" || phase === "done") {
@@ -165,19 +154,19 @@ export default function TimerScreen() {
 
   const sorted = [...sessions];
 
-const best =
-  sorted.length > 0
-    ? Math.min(...sorted.map((s) => s.duration_ms))
-    : null;
+  const best =
+    sorted.length > 0
+      ? Math.min(...sorted.map((s) => s.duration_ms))
+      : null;
 
-const ao5 =
-  sessions.length >= 5
-    ? Math.round(
+  const ao5 =
+    sessions.length >= 5
+      ? Math.round(
         sessions
           .slice(0, 5)
           .reduce((sum, item) => sum + Number(item.duration_ms), 0) / 5
       )
-    : null;
+      : null;
 
   const bigLabel =
     phase === "idle"

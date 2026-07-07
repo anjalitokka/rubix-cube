@@ -4,9 +4,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { theme } from "@/src/theme";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
-
+import {
+  loadStoredTimes,
+  saveStoredTimes,
+  loadStoredSolves,
+  saveStoredSolves,
+} from "@/src/lib/storage";
 
 function formatMs(ms) {
   const totalCs = Math.floor(ms / 10);
@@ -15,28 +18,6 @@ function formatMs(ms) {
   const cs = totalCs % 100;
   if (minutes > 0) return `${minutes}:${seconds.toString().padStart(2, "0")}.${cs.toString().padStart(2, "0")}`;
   return `${seconds}.${cs.toString().padStart(2, "0")}`;
-}
-const STORAGE_KEY = "cube_timer_history";
-
-async function loadStoredTimes() {
-  try {
-    const data = await AsyncStorage.getItem(STORAGE_KEY);
-
-    if (!data) return [];
-
-    return JSON.parse(data);
-  } catch {
-    return [];
-  }
-}
-
-async function saveStoredTimes(times) {
-  try {
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(times)
-    );
-  } catch { }
 }
 
 function relTime(iso) {
@@ -59,12 +40,12 @@ export default function HistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-  const solveHistory = await loadStoredSolves();
-  const timerHistory = await loadStoredTimes();
+    const solveHistory = await loadStoredSolves();
+    const timerHistory = await loadStoredTimes();
 
-  setSolves(solveHistory);
-  setTimes(timerHistory);
-}, []);
+    setSolves(solveHistory);
+    setTimes(timerHistory);
+  }, []);
 
   useEffect(() => {
     load();
@@ -77,37 +58,20 @@ export default function HistoryScreen() {
   };
 
   const remove = async (type, id) => {
+    if (type === "solves") {
+      const updated = solves.filter((x) => x.id !== id);
 
-  if (type === "solves") {
+      await saveStoredSolves(updated);
 
-    try {
+      setSolves(updated);
+    } else {
+      const updated = times.filter((x) => x.id !== id);
 
-      await fetch(
-        `${process.env.EXPO_PUBLIC_BACKEND_URL}/api/solves/${id}`,
-        {
-          method: "DELETE",
-        }
-      );
+      await saveStoredTimes(updated);
 
-    } catch {}
-
-    setSolves((x) =>
-      x.filter((s) => s.id !== id)
-    );
-
-  } else {
-
-    const updated = times.filter(
-      (x) => x.id !== id
-    );
-
-    await saveStoredTimes(updated);
-
-    setTimes(updated);
-
-  }
-
-};
+      setTimes(updated);
+    }
+  };
 
   const data = tab === "solves" ? solves : times;
   const empty = data.length === 0;

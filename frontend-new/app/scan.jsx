@@ -15,6 +15,10 @@ import {
   validateColorCount,
   CENTER_COLOR,
 } from "@/src/lib/cube";
+import {
+  loadStoredSolves,
+  saveStoredSolves,
+} from "@/src/lib/storage";
 
 import { apiPost } from "@/src/lib/api";
 import CubeNet from "@/src/components/CubeNet";
@@ -135,33 +139,56 @@ export default function ScanScreen() {
 
   const finishAndSolve = async () => {
     const check = validateColorCount(state);
+
     if (!check.ok) {
       setError(`Invalid state: ${check.message}`);
       return;
     }
+
     setSolving(true);
+
     try {
       const facelets = stateToFacelets(state);
-      const res = await apiPost("/solve", { facelets });
-      try {
-        await apiPost("/solves", {
+
+      const res = await apiPost("/solve", {
+        facelets,
+      });
+
+      const old = await loadStoredSolves();
+
+      const updated = [
+        {
+          id: Date.now().toString(),
           facelets,
           solution: res.solution,
           move_count: res.move_count,
           input_method: "scan",
-        });
-      } catch (_) { }
+          created_at: new Date().toISOString(),
+        },
+        ...old,
+      ];
+
+      await saveStoredSolves(updated);
+
       router.push({
         pathname: "/solve",
-        params: { facelets, solution: res.solution, moves: res.moves.join(",") },
+        params: {
+          facelets,
+          solution: res.solution,
+          moves: res.moves.join(","),
+        },
       });
+
     } catch (e) {
-      setError(`Unsolvable — please recheck faces. (${String(e?.message || e).slice(0, 100)})`);
+      setError(
+        `Unsolvable — please recheck faces. (${String(
+          e?.message || e
+        ).slice(0, 100)})`
+      );
     } finally {
       setSolving(false);
     }
   };
-
   const capturedAll = faceIdx >= 5 && !reviewingColors;
 
   if (!permission) {
@@ -296,7 +323,7 @@ export default function ScanScreen() {
         </ScrollView>
       </SafeAreaView>
     );
-  }
+  };
 
   // Live camera capture
   return (
