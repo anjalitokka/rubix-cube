@@ -97,24 +97,28 @@ export default function ScanScreen() {
       setDetecting(false);
     }
   };
-
+  const [allFacesCaptured, setAllFacesCaptured] = useState(false);
   const confirmFace = () => {
     if (!reviewingColors) return;
     const start = faceIndex(face) * 9;
     setState((prev) => {
-      const copy = prev.slice();
-      for (let i = 0; i < 9; i++) copy[start + i] = reviewingColors[i];
-      // ensure center stays canonical
+      const copy = [...prev];
+      for (let i = 0; i < 9; i++) {
+        copy[start + i] = reviewingColors[i];
+      }
       copy[start + 4] = CENTER_COLOR[face];
       return copy;
     });
     setReviewingColors(null);
-    if (faceIdx < 5) {
+    if (faceIdx === 5) {
+      setAllFacesCaptured(true);
+    } else {
       setFaceIdx((v) => v + 1);
     }
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Haptics.notificationAsync(
+      Haptics.NotificationFeedbackType.Success
+    );
   };
-
   const editReviewColor = (i) => {
     if (!reviewingColors) return;
     // cycle through colors on tap
@@ -132,6 +136,7 @@ export default function ScanScreen() {
 
   const restart = () => {
     setFaceIdx(0);
+    setAllFacesCaptured(false);
     setState(solvedState());
     setReviewingColors(null);
     setError(null);
@@ -189,7 +194,7 @@ export default function ScanScreen() {
       setSolving(false);
     }
   };
-  const capturedAll = faceIdx >= 5 && !reviewingColors;
+  const capturedAll = allFacesCaptured && !reviewingColors;
 
   if (!permission) {
     return (
