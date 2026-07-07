@@ -31,7 +31,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow CubeSolver to access your camera to scan the Rubik's Cube."
+          "cameraPermission": "Allow CubeVision to access your camera to scan the Rubik's Cube."
         }
       ],
       [

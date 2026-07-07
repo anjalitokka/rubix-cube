@@ -29,10 +29,10 @@ export default function HomeScreen() {
                             style={StyleSheet.absoluteFill}
                         />
                         <View style={styles.heroContent}>
-                            <Text style={styles.brandLabel} testID="brand-label">CUBESOLVER</Text>
-                            <Text style={styles.heroTitle}>
-                                Solve it in{"\n"}
-                                20 moves or less.
+                            <Text style={styles.heroTitle} testID="brand-label">CubeVision{"\n"}</Text>
+
+                            <Text style={styles.brandLabel}>
+                                Solve it in 20 moves or less.
                             </Text>
                             <Text style={styles.heroSub}>
                                 Scan or tap in your scramble — get an optimal solution instantly.
@@ -54,7 +54,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.primaryTitle}>Scan with Camera</Text>
-                            <Text style={styles.primarySub}>AI reads each face and builds the state</Text>
+                            <Text style={styles.primarySub}>Scanner reads each face and builds the state</Text>
                         </View>
                         <Ionicons name="chevron-forward" size={22} color={theme.colors.textDim} />
                     </Pressable>
@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
     hero: { flex: 1, justifyContent: "flex-end" },
     heroContent: { padding: theme.space.xl, paddingBottom: theme.space.xl },
     brandLabel: {
-        color: theme.colors.brand,
+        color: theme.colors.text,
         fontSize: 12,
         letterSpacing: 3,
         fontWeight: "700",
         marginBottom: theme.space.sm,
     },
     heroTitle: {
-        color: theme.colors.text,
+        color: theme.colors.brand,
         fontSize: 34,
         lineHeight: 40,
         fontWeight: "800",
