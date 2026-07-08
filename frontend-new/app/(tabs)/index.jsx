@@ -55,6 +55,7 @@ export default function HomeScreen() {
                         <View style={{ flex: 1 }}>
                             <Text style={styles.primaryTitle}>Scan with Camera</Text>
                             <Text style={styles.primarySub}>Scanner reads each face and builds the state</Text>
+                            <Text style={styles.primarySub}>HOLD THE CUBE : UP - WHITE | FRONT - GREEN </Text>
                         </View>
                         <Ionicons name="chevron-forward" size={22} color={theme.colors.textDim} />
                     </Pressable>
