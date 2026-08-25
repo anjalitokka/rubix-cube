@@ -44,4 +44,4 @@ Database
    
 Libraries & Tools
 
-  OpenCV (Color Detection) | Kociemba Algorithm | AsyncStorage | Expo Camera | Expo Haptics
+  GoogleGenAI (Color Detection) | Kociemba Algorithm | AsyncStorage | Expo Camera | Expo Haptics
